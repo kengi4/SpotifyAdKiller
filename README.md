@@ -4,6 +4,12 @@ A lightweight, unobtrusive Windows desktop application designed to monitor your 
 
 > **Note**: This application was generated completely from scratch with the help of **Gemini 3.1 Pro**.
 
+## Get Started
+
+📥 **[Download the latest release here](https://github.com/kengi4/SpotifyAdKiller/releases/latest)**
+
+Simply download the `.exe` file, run it, and it will immediately start working in your system tray!
+
 ## How it works
 
 The application runs silently in the system tray and polls the active Spotify processes with minimal CPU overhead. When it detects that the currently playing track matches your designated "target track", it automatically:

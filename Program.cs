@@ -23,7 +23,7 @@ namespace SpotifyAdKiller
             }
             else
             {
-                MessageBox.Show("Приложение уже запущено!", "Spotify Ad Killer", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show("Application is already running!", "Spotify Ad Killer", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
     }
