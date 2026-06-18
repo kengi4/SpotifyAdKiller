@@ -24,7 +24,7 @@ namespace SpotifyAdKiller
         [DllImport("user32.dll", SetLastError = true)]
         public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
-        private const int VK_MEDIA_PLAY_PAUSE = 0xB3;
+        private const int VK_MEDIA_NEXT_TRACK = 0xB0;
         private const int KEYEVENTF_EXTENDEDKEY = 0x0001;
         private const int KEYEVENTF_KEYUP = 0x0002;
 
@@ -60,7 +60,14 @@ namespace SpotifyAdKiller
             contextMenu.MenuItems.Add(menuItemExit);
 
             notifyIcon = new NotifyIcon();
-            notifyIcon.Icon = SystemIcons.Information; // Fallback icon
+            try
+            {
+                notifyIcon.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+            }
+            catch
+            {
+                notifyIcon.Icon = SystemIcons.Information; // Fallback icon
+            }
             notifyIcon.ContextMenu = contextMenu;
             notifyIcon.Text = "Spotify Ad Killer";
             notifyIcon.Visible = true;
@@ -134,9 +141,9 @@ namespace SpotifyAdKiller
                 // Wait for Spotify to launch and initialize
                 await Task.Delay(4000);
 
-                // Send Media Play/Pause
-                keybd_event((byte)VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY | 0, UIntPtr.Zero);
-                keybd_event((byte)VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, UIntPtr.Zero);
+                // Send Media Next Track
+                keybd_event((byte)VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY | 0, UIntPtr.Zero);
+                keybd_event((byte)VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, UIntPtr.Zero);
             }
             catch (Exception ex)
             {
