@@ -45,10 +45,15 @@ By default, the target track name is set to `Слухайте музику бе�
 
 To build the project from source, you need the .NET Framework 4.7.2 SDK.
 
-Clone the repository and run the following command in the project directory:
+Clone the repository 
+```bash
+git clone https://github.com/kengi4/SpotifyAdKiller.git
+```
+
+and run the following command in the project directory:
 
 ```bash
 dotnet build SpotifyAdKiller.csproj -c Release
 ```
 
-The compiled executable will be generated at `bin\Release\SpotifyAdKiller.exe`.
+The compiled executable will be generated at `bin\Release\`.
