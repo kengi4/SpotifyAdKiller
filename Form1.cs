@@ -24,6 +24,11 @@ namespace SpotifyAdKiller
         [DllImport("user32.dll", SetLastError = true)]
         public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        private const int SW_SHOWMINNOACTIVE = 7;
+
         private const int VK_MEDIA_NEXT_TRACK = 0xB0;
         private const int KEYEVENTF_EXTENDEDKEY = 0x0001;
         private const int KEYEVENTF_KEYUP = 0x0002;
@@ -130,16 +135,32 @@ namespace SpotifyAdKiller
                 
                 if (File.Exists(spotifyExe))
                 {
-                    Process.Start(spotifyExe);
+                    var psi = new ProcessStartInfo(spotifyExe) { WindowStyle = ProcessWindowStyle.Minimized };
+                    Process.Start(psi);
                 }
                 else
                 {
                     // Fallback to store app alias if possible
-                    try { Process.Start("spotify.exe"); } catch { }
+                    try { 
+                        var psi = new ProcessStartInfo("spotify.exe") { WindowStyle = ProcessWindowStyle.Minimized };
+                        Process.Start(psi); 
+                    } catch { }
                 }
 
-                // Wait for Spotify to launch and initialize
-                await Task.Delay(4000);
+                // Poll actively for up to 3 seconds to find the window as early as possible
+                for (int i = 0; i < 30; i++)
+                {
+                    await Task.Delay(100);
+                    var newSpotify = Process.GetProcessesByName("Spotify").FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
+                    if (newSpotify != null)
+                    {
+                        ShowWindow(newSpotify.MainWindowHandle, SW_SHOWMINNOACTIVE);
+                        break;
+                    }
+                }
+
+                // Give Spotify a bit more time to fully initialize before sending media keys
+                await Task.Delay(2500);
 
                 // Send Media Next Track
                 keybd_event((byte)VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY | 0, UIntPtr.Zero);
