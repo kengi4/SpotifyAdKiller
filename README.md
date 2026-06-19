@@ -8,7 +8,7 @@ A lightweight, unobtrusive Windows desktop application designed to monitor your 
 
 📥 **[Download the latest release here](https://github.com/kengi4/SpotifyAdKiller/releases/latest)**
 
-Simply download the `.exe` file, run it, and it will immediately start working in your system tray!
+Simply download the application files. **Before running the application for the first time, you must follow the steps in the [Configuration & Finding Your Ad Title](#configuration--finding-your-ad-title) section** below to configure the target ad title for your region. Once configured, run the `.exe` file, and it will seamlessly start working in your system tray!
 
 ## How it works
 
