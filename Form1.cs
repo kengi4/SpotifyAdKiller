@@ -20,6 +20,7 @@ namespace SpotifyAdKiller
         
         private string targetTrackName = "Слухайте музику без реклами";
         private bool isEnabled = true;
+        private Process cachedSpotifyProcess = null;
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
@@ -99,33 +100,73 @@ namespace SpotifyAdKiller
         {
             if (!isEnabled) return;
 
-            var spotifyProcesses = Process.GetProcessesByName("Spotify");
-            if (spotifyProcesses.Length == 0) return;
-
-            foreach (var p in spotifyProcesses)
+            try
             {
-                if (p.MainWindowHandle != IntPtr.Zero)
+                if (cachedSpotifyProcess != null)
                 {
-                    string title = p.MainWindowTitle;
-                    
-                    if (!string.IsNullOrEmpty(title) && title.IndexOf(targetTrackName, StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (cachedSpotifyProcess.HasExited)
                     {
-                        await HandleAdDetection(spotifyProcesses);
-                        break;
+                        cachedSpotifyProcess.Dispose();
+                        cachedSpotifyProcess = null;
+                    }
+                }
+
+                if (cachedSpotifyProcess == null)
+                {
+                    var spotifyProcesses = Process.GetProcessesByName("Spotify");
+                    foreach (var p in spotifyProcesses)
+                    {
+                        try
+                        {
+                            if (cachedSpotifyProcess == null && p.MainWindowHandle != IntPtr.Zero)
+                            {
+                                cachedSpotifyProcess = p;
+                            }
+                            else
+                            {
+                                p.Dispose();
+                            }
+                        }
+                        catch
+                        {
+                            p.Dispose();
+                        }
+                    }
+                }
+
+                if (cachedSpotifyProcess != null)
+                {
+                    cachedSpotifyProcess.Refresh();
+                    if (cachedSpotifyProcess.MainWindowHandle != IntPtr.Zero)
+                    {
+                        string title = cachedSpotifyProcess.MainWindowTitle;
+                        if (!string.IsNullOrEmpty(title) && title.IndexOf(targetTrackName, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            await HandleAdDetection();
+                        }
                     }
                 }
             }
+            catch { }
         }
 
-        private async Task HandleAdDetection(Process[] processes)
+        private async Task HandleAdDetection()
         {
             pollTimer.Stop(); // Stop polling while we restart
             try
             {
+                if (cachedSpotifyProcess != null)
+                {
+                    cachedSpotifyProcess.Dispose();
+                    cachedSpotifyProcess = null;
+                }
+
                 // Kill all Spotify processes
+                var processes = Process.GetProcessesByName("Spotify");
                 foreach (var p in processes)
                 {
                     try { p.Kill(); } catch { }
+                    p.Dispose();
                 }
 
                 await Task.Delay(1000); // Wait for processes to exit
@@ -151,12 +192,17 @@ namespace SpotifyAdKiller
                 for (int i = 0; i < 30; i++)
                 {
                     await Task.Delay(100);
-                    var newSpotify = Process.GetProcessesByName("Spotify").FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
+                    var newSpotifyProcesses = Process.GetProcessesByName("Spotify");
+                    var newSpotify = newSpotifyProcesses.FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
+                    
                     if (newSpotify != null)
                     {
                         ShowWindow(newSpotify.MainWindowHandle, SW_SHOWMINNOACTIVE);
+                        foreach (var p in newSpotifyProcesses) p.Dispose();
                         break;
                     }
+                    
+                    foreach (var p in newSpotifyProcesses) p.Dispose();
                 }
 
                 // Give Spotify a bit more time to fully initialize before sending media keys
